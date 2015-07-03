@@ -24,9 +24,9 @@ require_once "multirequest.inc";
  */
 // url root to sub requests
 $approot = '/gndProxy';
-$appurl = 'http://data.ub.fu-berlin.de' . $approot . '/';
+$appurl = 'http://localhost/' . $approot . '/';
 $actualServices = array('dnb' => 'dnb', 'cult' => 'culturgraph', 'wiki' => 'wikidata');
-$requestExample = 'http://data.ub.fu-berlin.de' . $approot . '/gnd.php?query=118587943&services=' . $actualServices . '&debug=Y';
+$requestExample = 'http://localhost/' . $approot . '/gnd.php?query=118587943&services=' . $actualServices . '&debug=Y';
 /**
  * *********************************************************************************
  */
