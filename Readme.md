@@ -1,7 +1,7 @@
 # GND Proxy 
 
 a tool to do parallel request to different webservices, fetching data from wikidata, wikipedia, german national library, and culture graph.
-Results are merged into a single JSON object. Use this as backend for [wikibox](#) (a JS to create beautiful tooltips with data from multiple sources).
+Results are merged into a single JSON object. Use this as backend for [wikibox](https://github.com/jhercher/wikibox) (a JS to create beautiful tooltips with data from multiple sources).
 
 ### Dependencies
 This script makes use of:
