@@ -17,11 +17,11 @@ if (!isset($gnd)) {
     exit();
 }
 
-$uri = 'http://hub.culturegraph.org/entityfacts/' . $gnd;
+$uri = 'https://hub.culturegraph.org/entityfacts/' . $gnd;
 
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $uri);
-curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+curl_setopt($ch, CURLOPT_TIMEOUT, 5);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 $ret = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -29,7 +29,7 @@ if ($httpCode == 404) {
     /* Handle 404 here. */
     $error = array();
     $error['error'] = "CULTURGRAPH: " . $uri . " not found";
-    //echo json_encode($error);
+    echo json_encode($error);
     exit;
 }
 

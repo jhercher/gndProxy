@@ -8,7 +8,6 @@
  * @return array of result objects
  */
 function multiRequest($data, $options = array()) {
-  
     // array of curl handles
 	$curly = array();
 	// data to be returned
@@ -22,15 +21,16 @@ function multiRequest($data, $options = array()) {
 	foreach($data as $id=>$d) {
              
 		$curly[$id] = curl_init();
-		
-		$url = (is_array($d) && ! empty($d['url'])) ? $d['url'] : $d;
-		$timeout = "20"; //timeout in sec. for each service, set 0 to disable
-		curl_setopt($curly[$id], CURLOPT_URL, $url);
+		$url = (is_array($d) && !empty($d['url'])) ? $d['url'] : $d;
+        $timeout = "0"; //timeout in sec. for each service, set 0 to disable
+        curl_setopt($curly[$id], CURLOPT_URL, $url);
 		curl_setopt($curly[$id], CURLOPT_HEADER, 0);
 		curl_setopt($curly[$id], CURLOPT_RETURNTRANSFER, 1);
-                curl_setopt($curly[$id], CURLOPT_CONNECTTIMEOUT, $timeout);
+		curl_setopt($curly[$id], CURLOPT_SSL_VERIFYPEER, true);
+ 		curl_setopt($curly[$id], CURLOPT_SSL_VERIFYHOST, 2);
+ 		curl_setopt($curly[$id], CURLOPT_CAINFO, getcwd() . "your/path/to/your_server/ssl/certificate.crt");
+		curl_setopt($curly[$id], CURLOPT_CONNECTTIMEOUT, $timeout);
 		
-		// post?
 		if (is_array($d)) {
 			if (! empty($d['post'])) {
 				curl_setopt($curly[$id], CURLOPT_POST, 1);

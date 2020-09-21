@@ -15,11 +15,13 @@
  * @version 0.1
  */
 
-set_include_path(get_include_path() . PATH_SEPARATOR . 'easyrdf/lib/');
-require_once "easyrdf/lib/EasyRdf.php";
+//set_include_path(get_include_path() . PATH_SEPARATOR . 'easyrdf/lib/');
+//require_once "easyrdf/lib/EasyRdf.php";
+require 'vendor/autoload.php';
 
 //$gnd = '118540238';
 //$gnd = '2004374-0'; //BVG
+//$gnd = '4394007-9'; // 68er
 
 $gnd = filter_input(INPUT_GET, 'query', FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
 
@@ -28,7 +30,10 @@ if (!isset($gnd)) {
     exit;
 }
 
-$uri = 'http://d-nb.info/gnd/' . $gnd;
+$uri = 'https://d-nb.info/gnd/' . $gnd .'/about/rdf' ;
+$res = 'https://d-nb.info/gnd/' . $gnd;
+//$uri = 'http://d-nb.info/gnd/118540238/about/rdf' ;
+//$res = 'http://d-nb.info/gnd/118540238' ;//. $gnd;
 
 // setup namespaces
 // standard
@@ -36,7 +41,8 @@ EasyRdf_Namespace::set('owl', 'http://www.w3.org/2002/07/owl#');
 EasyRdf_Namespace::set('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#');
 EasyRdf_Namespace::set('rdfs', 'http://www.w3.org/2000/01/rdf-schema#');
 // dnb
-EasyRdf_Namespace::set('gnd', 'http://d-nb.info/standards/elementset/gnd#');
+//EasyRdf_Namespace::set('gnd', 'http://d-nb.info/standards/elementset/gnd#'); DNB changed namespace
+EasyRdf_Namespace::set('gnd', 'https://d-nb.info/standards/elementset/gnd#');
 EasyRdf_Namespace::set('bibo', 'http://purl.org/ontology/bibo/');
 EasyRdf_Namespace::set('dct', 'http://purl.org/dc/terms/');
 EasyRdf_Namespace::set('dc', 'http://purl.org/dc/elements/1.1/');
@@ -55,11 +61,11 @@ if (!$rdf) {
     exit;
 }
 
-$typeUri = $rdf->get($uri, "rdf:type");
+$typeUri = $rdf->get($res, "rdf:type");
 $typeArr = split("#", $typeUri);
 $type = $typeArr[1];
 
-$name = $rdf->join($uri, 'gnd:preferredNameForTheSubjectHeading|'
+$name = $rdf->join($res, 'gnd:preferredNameForTheSubjectHeading|'
         . 'gnd:preferredNameForTheSubjectHeadingSensoStricto|'
         . 'gnd:preferredNameForTheCorporateBody|'
         . 'gnd:preferredNameForTheFamily|'
@@ -69,7 +75,7 @@ $name = $rdf->join($uri, 'gnd:preferredNameForTheSubjectHeading|'
         . 'gnd:preferredNameForTheConferenceOrEvent'
 );
 
-$altname = $rdf->join($uri, 'gnd:variantNameForTheSubjectHeading|'
+$altname = $rdf->join($res, 'gnd:variantNameForTheSubjectHeading|'
         . 'gnd:variantNameForTheSubjectHeadingSensoStricto|'
         . 'gnd:variantNameForTheCorporateBody|'
         . 'gnd:variantNameForTheFamily|'
@@ -79,7 +85,9 @@ $altname = $rdf->join($uri, 'gnd:variantNameForTheSubjectHeading|'
         . 'gnd:variantNameForTheConferenceOrEvent'
         , ', ');
 
-$synSearch = '("' . $name . '") OR (' . $gnd . ') OR ("' . $rdf->join($uri, 'gnd:variantNameForTheSubjectHeading|'
+if (isset($name) && $name !==""){ // TODO: sometimes an old gndid is queried and dnb redirects to new, 
+                                  //in this case $name is unset. gndProxy should not deliver results then. e.g. 4113236-1
+$synSearch = '("' . $name . '") OR (' . $gnd . ') OR ("' . $rdf->join($res, 'gnd:variantNameForTheSubjectHeading|'
                 . 'gnd:variantNameForTheSubjectHeadingSensoStricto|'
                 . 'gnd:variantNameForTheCorporateBody|'
                 . 'gnd:variantNameForTheFamily|'
@@ -88,22 +96,22 @@ $synSearch = '("' . $name . '") OR (' . $gnd . ') OR ("' . $rdf->join($uri, 'gnd
                 . 'gnd:variantNameForTheWork|'
                 . 'gnd:variantNameForTheConferenceOrEvent'
                 , '") OR ("') . '")';
-
-$homepage = utf8_encode($rdf->get($uri, "gnd:homepage"));
-$definition = $rdf->join($uri, "gnd:definition|gnd:biographicalOrHistoricalInformation");
-$gndId = $rdf->join($uri, "gnd:gndIdentifier");
-$since = $rdf->join("gnd:dateOfBirth|gnd:dateOfEstablishment|gnd:dateOfConferenceOrEvent|gnd:udkCode", "literal");
-$until = $rdf->join("$uri", "gnd:dateOfDeath|gnd:dateOfTermination");
-$wikipage = $rdf->join($uri, "foaf:page");
+}
+$homepage = utf8_encode($rdf->get($res, "gnd:homepage"));
+$definition = $rdf->join($res, "gnd:definition|gnd:biographicalOrHistoricalInformation");
+$gndId = $rdf->join($res, "gnd:gndIdentifier");
+$since = $rdf->join($res, "gnd:dateOfBirth|gnd:dateOfEstablishment|gnd:dateOfConferenceOrEvent|gnd:udkCode", "literal");
+$until = $rdf->join($res, "gnd:dateOfDeath|gnd:dateOfTermination");
+$wikipage = $rdf->join($res, "foaf:page");
 //{TODO} $broaderTermPartitive = utf8_encode($rdf->get("^gnd:broaderTermPartitive")); // Teil von
-//{TODO} $broaderTermInstantial = $rdf->get($uri,"gnd:broaderTermInstantial","literal","de"); // Beispiel für       
+//{TODO} $broaderTermInstantial = $rdf->get($res,"gnd:broaderTermInstantial","literal","de"); // Beispiel für       
 //{TODO  different indexes for swiRef = Topic in , autRef = autor of , betRef = contributor pubs, intRef = interpreted...  
-//{TODO} $fieldOfStudy = $rdf->get($uri, "gnd:fieldOfStudy/gnd:preferredNameForTheSubjectHeading");
+//{TODO} $fieldOfStudy = $rdf->get($res, "gnd:fieldOfStudy/gnd:preferredNameForTheSubjectHeading");
 //{TODO} DDC
-//{TODO} $relatedDdc = $rdf->join("$uri", "gnd:relatedDdcWithDegreeOfDeterminacy1|gnd:relatedDdcWithDegreeOfDeterminacy2|gnd:relatedDdcWithDegreeOfDeterminacy3");  
+//{TODO} $relatedDdc = $rdf->join("$res", "gnd:relatedDdcWithDegreeOfDeterminacy1|gnd:relatedDdcWithDegreeOfDeterminacy2|gnd:relatedDdcWithDegreeOfDeterminacy3");  
 $r = array();
-if (isset($type)       && $type)                { $r['type'] = $type ;}
-if (isset($name)       && $name)                { $r['name'] = $name ;}
+if (isset($type)       && $type !=="")         { $r['type'] = $type ;}
+if (isset($name)       && $name !=="")          { $r['name'] = $name ;}
 if (isset($altname)    && $altname !=="")       { $r['altname'] = $altname ;}
 if (isset($homepage)   && $homepage !=="")      { $r['homepage'] = $homepage ;}
 if (isset($definition) && $definition !== "")   { $r['definition'] = $definition ;}

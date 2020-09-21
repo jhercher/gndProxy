@@ -15,8 +15,7 @@
  * @version 0.1
  * 
  */
-set_include_path(get_include_path() . PATH_SEPARATOR . 'easyrdf/lib/');
-require_once "easyrdf/lib/EasyRdf.php";
+
 require_once "multirequest.inc";
 
 /**
@@ -34,7 +33,7 @@ $requestExample = 'http://localhost/' . $approot . '/gnd.php?query=118587943&ser
 $gnd = filter_input(INPUT_GET, 'query', FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
 $servicesIn = filter_input(INPUT_GET, 'services', FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH); 
 $debug = filter_input(INPUT_GET, 'debug', FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
-$lang = filter_input(INPUT_GET, 'lang', FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
+$lang = filter_input(INPUT_GET, 'lang', FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH); 
 $callback = filter_input(INPUT_GET, 'jsoncallback', FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
 //$gnd = $_REQUEST['query'];//$services = $_REQUEST['services'];//$debug = $_REQUEST['debug'];//$lang= $_REQUEST['lang'];
 //TODO: capture request errors
@@ -62,7 +61,7 @@ foreach ($services as $service) {
         gnderror("service $service not allowed!", $requestExample);
     }
     if (isset($actualServices[$service])) {
-        $data[] = $appurl . $actualServices[$service] . '.php?query=' . $gnd . '&lang=' . $lang;
+        $data[$service] = $appurl . $actualServices[$service] . '.php?query=' . $gnd . '&lang=' . $lang;
     } else {
         gnderror("service $service not found", $requestExample);
     }
