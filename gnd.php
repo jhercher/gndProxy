@@ -86,7 +86,7 @@ $fields = array(
     'wikipage',
     'img',
     'homepage',
-    'definition',
+    'definition', //description from GND
     'gndId',
     'synSearch',
     'description', // descriptive text from Wikipedia
@@ -101,6 +101,12 @@ $fields = array(
     'friends',
     'sameAs',
     'relatedDdc',
+	'gndsc',	
+    'occupation',
+    'placeOfActivity',
+    'broaderTermGeneric',
+    'broaderTermInstantial',
+    'broaderTermPartitive'
 );
 
 if ($debug == "Y") {
