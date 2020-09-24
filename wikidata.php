@@ -9,6 +9,19 @@
  * @author Johannes Hercher <hercher@ub.fu-berlin.de>
  * @version 1.1
  */
+ 
+ function url_get_contents ($Url) {
+    if (!function_exists('curl_init')){ 
+        die('CURL is not installed!');
+    }
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $Url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Accept: application/sparql-results+json','User-Agent: Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36']);
+    $output = curl_exec($ch);
+    curl_close($ch);
+    return $output;
+}
 
 $gnd = filter_input(INPUT_GET, 'query', FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
 $lang = filter_input(INPUT_GET, 'lang', FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
@@ -123,7 +136,7 @@ if(!empty($pageArr)){ // case where no pages available
                 break;
         } 
     }
-    $q = "https://$l.wikipedia.org/w/api.php?action=query&prop=extracts&exchars=$chars&titles=$pageLabel&explaintext=true&format=json";
+    $q = "https://$l.wikipedia.org/w/api.php?action=query&prop=extracts&exchars=$chars&titles=".urlencode($pageLabel)."&explaintext=true&format=json";
     $j = url_get_contents($q);
     $result = json_decode($j);
     if ($result !== NULL) {
@@ -140,7 +153,7 @@ if(!empty($pageArr)){ // case where no pages available
 
 /*process*/
 $wikidataId = getWikidataId($gnd);
-$img = getWikidataImg($gnd, "100");
+$img = getWikidataImg($gnd, "300");
 $wikiPageLabel = getWikiPage($wikidataId, $lang);
 $wiki = getDescription($wikiPageLabel, $lang, 500);
 $wikipage = $wiki["source"];
