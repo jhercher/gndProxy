@@ -12,7 +12,7 @@
  * 
  * @author Johannes Hercher <hercher@ub.fu-berlin.de>
  * @author Christoph Krempe <krempe@ub.fu-berlin.de>
- * @version 0.1
+ * @version 1.1
  */
 
 //set_include_path(get_include_path() . PATH_SEPARATOR . 'easyrdf/lib/');
@@ -35,11 +35,22 @@ $res = 'https://d-nb.info/gnd/' . $gnd;
 //$uri = 'http://d-nb.info/gnd/118540238/about/rdf' ;
 //$res = 'http://d-nb.info/gnd/118540238' ;//. $gnd;
 
+//util to convert objectresource values into array 
+function pArray($resource, $target = array(), $i=0){
+foreach ($resource as $value) {
+		   $target[$i] = strval($value);
+		   $i++;
+	  }
+	  return $target;
+}
+
 // setup namespaces
 // standard
 EasyRdf_Namespace::set('owl', 'http://www.w3.org/2002/07/owl#');
 EasyRdf_Namespace::set('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#');
 EasyRdf_Namespace::set('rdfs', 'http://www.w3.org/2000/01/rdf-schema#');
+EasyRdf_Namespace::set('foaf', 'http://xmlns.com/foaf/0.1/');
+
 // dnb
 //EasyRdf_Namespace::set('gnd', 'http://d-nb.info/standards/elementset/gnd#'); DNB changed namespace
 EasyRdf_Namespace::set('gnd', 'https://d-nb.info/standards/elementset/gnd#');
@@ -48,6 +59,7 @@ EasyRdf_Namespace::set('dct', 'http://purl.org/dc/terms/');
 EasyRdf_Namespace::set('dc', 'http://purl.org/dc/elements/1.1/');
 EasyRdf_Namespace::set('skos', 'http://www.w3.org/2004/02/skos/core#');
 EasyRdf_Namespace::set('isbd', 'http://iflastandards.info/ns/isbd/elements/');
+EasyRdf_Namespace::set('gndsc', 'https://d-nb.info/standards/vocab/gnd/gnd-sc#');
 
 $rdf = EasyRdf_Graph::newAndLoad($uri);
 
@@ -100,29 +112,42 @@ $synSearch = '("' . $name . '") OR (' . $gnd . ') OR ("' . $rdf->join($res, 'gnd
 $homepage = utf8_encode($rdf->get($res, "gnd:homepage"));
 $definition = $rdf->join($res, "gnd:definition|gnd:biographicalOrHistoricalInformation");
 $gndId = $rdf->join($res, "gnd:gndIdentifier");
+$placeOfBirth =utf8_encode($rdf->get($res, "gnd:placeOfBirth"));
 $since = $rdf->join($res, "gnd:dateOfBirth|gnd:dateOfEstablishment|gnd:dateOfConferenceOrEvent|gnd:udkCode", "literal");
 $until = $rdf->join($res, "gnd:dateOfDeath|gnd:dateOfTermination");
-$wikipage = $rdf->join($res, "foaf:page");
-//{TODO} $broaderTermPartitive = utf8_encode($rdf->get("^gnd:broaderTermPartitive")); // Teil von
-//{TODO} $broaderTermInstantial = $rdf->get($res,"gnd:broaderTermInstantial","literal","de"); // Beispiel für       
+$wikipage = utf8_encode($rdf->get($res, "foaf:page"));
+$gndsc = pArray($rdf->allResources($res, "gnd:gndSubjectCategory"));
+$occupation = pArray($rdf->allResources($res,"gnd:professionOrOccupation")); //Berufe
+$broaderTermGeneric = pArray($rdf->allResources($res,"gnd:broaderTermGeneric")); // hat Oberbegriff
+$broaderTermInstantial = pArray($rdf->allResources($res,"gnd:broaderTermInstantial")); //Beispiel für (übergeordnetes Konzept)
+$broaderTermPartitive = pArray($rdf->allResources($res,"gnd:broaderTermPartitive")); // Teil von (übergeordnetes Konzept)
+$relatedDdc = pArray($rdf->allResources($res,"gnd:relatedDdcWithDegreeOfDeterminacy4|gnd:relatedDdcWithDegreeOfDeterminacy3|gnd:relatedDdcWithDegreeOfDeterminacy2|gnd:relatedDdcWithDegreeOfDeterminacy1")); // the higher the determinacy the better! https://d-nb.info/standards/elementset/gnd#relatedDdcWithDegreeOfDeterminacy1
+$relatedTerm = pArray($rdf->allResources($res,"gnd:relatedTerm"));
+$placeOfActivity = pArray($rdf->allResources($res,"gnd:placeOfActivity"));
+
 //{TODO  different indexes for swiRef = Topic in , autRef = autor of , betRef = contributor pubs, intRef = interpreted...  
 //{TODO} $fieldOfStudy = $rdf->get($res, "gnd:fieldOfStudy/gnd:preferredNameForTheSubjectHeading");
-//{TODO} DDC
-//{TODO} $relatedDdc = $rdf->join("$res", "gnd:relatedDdcWithDegreeOfDeterminacy1|gnd:relatedDdcWithDegreeOfDeterminacy2|gnd:relatedDdcWithDegreeOfDeterminacy3");  
 $r = array();
-if (isset($type)       && $type !=="")         { $r['type'] = $type ;}
-if (isset($name)       && $name !=="")          { $r['name'] = $name ;}
-if (isset($altname)    && $altname !=="")       { $r['altname'] = $altname ;}
-if (isset($homepage)   && $homepage !=="")      { $r['homepage'] = $homepage ;}
-if (isset($definition) && $definition !== "")   { $r['definition'] = $definition ;}
-if (isset($since)      && $since !== "")        { $r['since'] = $since ;}
-if (isset($until)      && $until !== "")        { $r['until'] = $until ;}
-if (isset($wikipage)   && $wikipage !== "")     { $r['wikipage'] = $wikipage ;}
-if (isset($gndId)      && $gndId !== "")        { $r['gndId'] = $gndId ;}
-if (isset($synSearch)  && $synSearch !== "")    { $r['synSearch'] = $synSearch ;}
-//if (isset($broaderTermInstantial) && $broaderTermInstantial !== ""){ $r['broaderTermInstantial'] = $broaderTermInstantial ;}
-//if (isset($broaderTermPartitive)  && $broaderTermPartitive !== ""){ $r['broaderTermPartitive'] = $broaderTermPartitive ;}
-//if (isset($relatedDdc)          && $relatedDdc !== ""){ $r['relatedDdc'] = $relatedDdc ;}
+if (isset($type)      			&& $type !=="" )         { $r['type'] = $type ;}
+if (isset($name)      			&& $name !=="")          { $r['name'] = $name ;}
+if (isset($altname)   			&& $altname !=="")       { $r['altname'] = $altname ;}
+if (isset($homepage)  			&& $homepage !=="")      { $r['homepage'] = $homepage ;}
+if (isset($definition)			&& $definition !== "")   { $r['definition'] = $definition ;}
+if (isset($since)     			&& $since !== "")        { $r['since'] = $since ;}
+if (isset($placeOfBirth)     	&& $placeOfBirth !== "") { $r['placeOfBirth'] = $placeOfBirth ;}
+if (isset($until)     			&& $until !== "")        { $r['until'] = $until ;}
+if (isset($wikipage)  			&& $wikipage !== "")     { $r['wikipage'] = $wikipage ;}
+if (isset($gndId)     			&& $gndId !== "")        { $r['gndId'] = $gndId ;}
+if (isset($synSearch) 			&& $synSearch !== "")    { $r['synSearch'] = $synSearch ;}
+if (isset($relatedTerm) 		&& !empty($relatedTerm)) { $r['relatedTerm'] = $relatedTerm ;}
+if (isset($gndsc) 	  			&& !empty($gndsc))    	 { $r['gndsc'] = $gndsc ;}
+if (isset($occupation)			&& !empty($occupation))  { $r['occupation'] = $occupation ;}
+if (isset($placeOfActivity)			&& !empty($placeOfActivity))  { $r['placeOfActivity'] = $placeOfActivity ;}
+if (isset($broaderTermGeneric) 	&& !empty($broaderTermGeneric)) { $r['broaderTermGeneric'] = $broaderTermGeneric ;}
+if (isset($broaderTermInstantial) && !empty($broaderTermInstantial)) { $r['broaderTermInstantial'] = $broaderTermInstantial ;}
+if (isset($broaderTermPartitive) && !empty($broaderTermPartitive)) { $r['broaderTermPartitive'] = $broaderTermPartitive ;}
+if (isset($relatedDdc) && !empty($relatedDdc)) { $r['relatedDdc'] = $relatedDdc ;}
+
 //if (isset($gndSearchAllBooksUri)&& $gndSearchAllBooksUri !== ""){ $r['gndSearchAllBooksUri'] = $gndSearchAllBooksUri ;}
 //if (isset($fieldOfStudy)        && $fieldOfStudy !== ""){ $r['fieldOfStudy'] = $fieldOfStudy ;}  
 //if (isset($geo)                 && $geo !== ""){ $r['geo'] = $geo ;}
