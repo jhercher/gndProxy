@@ -49,30 +49,64 @@ if (isset($obj->Error)) {
     exit;
 }
 
-$name = $obj->person->preferredName;
-$until = $obj->person->dateOfDeath;
-$since = $obj->person->dateOfBirth;
-$definition = $obj->person->biographicalOrHistoricalInformation;
+$name = $obj->preferredName;
+$until = $obj->dateOfDeath;
+$since = $obj->dateOfBirth;
+$definition = $obj->biographicalOrHistoricalInformation;
+$placeOfBirth = null ;
+$placeOfDeath = null ;
+$placeOfActivity = null ;
+$relations = null ;
+$friends = null ;
+$sameAs = null ;
+$professions = null ; 
 
-foreach ($obj->person->professionOrOccupation as $prof) {
-    $professions .= $prof->{'@value'} . ', ';
-}
 
-foreach ($obj->person->familialRelationship as $rel) {
-    $relations .= $rel->preferredName . ' (' . $rel->relationship . '); ';
-}
-foreach ($obj->person->relatedPerson as $friend) {
-    $friends .= $friend->preferredName . ' (' . $friend->relationship . '); ';
-}
 
+if(!empty($obj->professionOrOccupation)){
+foreach ($obj->professionOrOccupation as $prof) {
+    $professions .= $prof->{'preferredName'} .' (('. $prof->{'@id'} . '));  ';
+}
+}
+if(!empty($obj->placeOfBirth)){
+foreach ($obj->placeOfBirth as $pob) {
+    $placeOfBirth .= $pob->{'preferredName'} .' (('. $pob->{'@id'} . '));  ';
+}
+}
+if(!empty($obj->placeOfDeath)){
+foreach ($obj->placeOfDeath as $pod) {
+    $placeOfDeath .= $pod->{'preferredName'} .' (('. $pod->{'@id'} . '));  ';
+}
+}
+if(!empty($obj->placeOfActivity)){
+foreach ($obj->placeOfActivity as $poa) {
+    $placeOfActivity .= $poa->{'preferredName'} .' (('. $poa->{'@id'} . '));  ';
+}
+}
+if(!empty($obj->familialRelationship)){
+foreach ($obj->familialRelationship as $rel) {
+    $relations .= $rel->{'relationship'} .': '. $rel->{'preferredName'} . ' (' . $rel->{'@id'} . '); ';
+}
+}
+if(!empty($obj->relatedPerson)){
+foreach ($obj->relatedPerson as $friend) {
+    $friends .= $friend->{'preferredName'} . ' (' . $friend->{'@id'} . '); ';
+}
+}
+if(!empty($obj->sameAs)){
 foreach ($obj->sameAs as $same) {
-    $sameAs .= $same->publisher->name . ': ((' . $same->{'@id'} . ')); ';
+    $sameAs .= $same->collection->abbr . ': ((' . $same->{'@id'} . ')); ';
+}
 }
 
 $r = array();
-        if (isset($since)){ $r['until'] = $until ;}
-        if (isset($from)){ $r['form'] = $from ;}
         if (isset($name)){ $r['name'] = $name ;}
+        if (isset($since)){ $r['since'] = $since ;}
+        if (isset($until)){ $r['until'] = $until ;}
+        if (isset($from)){ $r['form'] = $from ;}
+        if (isset($placeOfBirth)){ $r['placeOfBirth'] = $placeOfBirth ;}
+        if (isset($placeOfDeath)){ $r['placeOfDeath'] = $placeOfDeath ;}
+        if (isset($placeOfActivity)){ $r['placeOfActivity'] = $placeOfActivity ;}
         if (isset($professions)){ $r['professions'] = $professions ;}
         if (isset($relations)){ $r['relations'] = $relations ;}
         if (isset($friends)){ $r['friends'] = $friends ;}
