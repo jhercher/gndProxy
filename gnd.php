@@ -25,7 +25,8 @@ require_once "multirequest.inc";
 $approot = '/gndProxy';
 $appurl = 'http://localhost/' . $approot . '/';
 $actualServices = array('dnb' => 'dnb', 'cult' => 'culturgraph', 'wiki' => 'wikidata');
-$requestExample = 'http://localhost/' . $approot . '/gnd.php?query=118587943&services=' . $actualServices . '&debug=Y';
+$requestExample = 'http://localhost/' . $approot . '/gnd.php?query=118587943&services=' . json_encode($actualServices) . '&debug=Y';
+$resultIsEmpty = null;
 /**
  * *********************************************************************************
  */
