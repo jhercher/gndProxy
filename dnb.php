@@ -74,7 +74,7 @@ if (!$rdf) {
 }
 
 $typeUri = $rdf->get($res, "rdf:type");
-$typeArr = split("#", $typeUri);
+$typeArr = explode("#", $typeUri);
 $type = $typeArr[1];
 
 $name = $rdf->join($res, 'gnd:preferredNameForTheSubjectHeading|'
