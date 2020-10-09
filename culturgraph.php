@@ -48,11 +48,19 @@ if (isset($obj->Error)) {
     echo $ret;
     exit;
 }
-
+if(!empty($obj->preferredName)){
 $name = $obj->preferredName;
+}
+if(!empty($obj->dateOfDeath)){
 $until = $obj->dateOfDeath;
+}
+if(!empty($obj->dateOfBirth)){
 $since = $obj->dateOfBirth;
+}
+if(!empty($obj->biographicalOrHistoricalInformation)){
 $definition = $obj->biographicalOrHistoricalInformation;
+}
+
 $placeOfBirth = null ;
 $placeOfDeath = null ;
 $placeOfActivity = null ;
