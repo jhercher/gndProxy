@@ -23,12 +23,43 @@ require 'vendor/autoload.php';
 //$gnd = '2004374-0'; //BVG
 //$gnd = '4394007-9'; // 68er
 
+/*
+check if the URL exists  
+*/
+function urlExists($url) {
+ 
+   $handle = curl_init($url);
+   curl_setopt($handle,  CURLOPT_RETURNTRANSFER, TRUE);
+ 
+   $response = curl_exec($handle);
+   $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+ 
+   if($httpCode >= 200 && $httpCode <= 400) {
+       return true; } else { return false;
+   }
+ 
+   curl_close($handle);
+}
+
+// validate input
 $gnd = filter_input(INPUT_GET, 'query', FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
 
+// gnd set?
 if (!isset($gnd)) {
     echo "gnd not set";
     exit;
+} 
+// gnd valid number?
+// regexpattern https://www.wikidata.org/wiki/Property_talk:P227
+if (!preg_match('/1[012]?\d{7}[0-9X]|[47]\d{6}-\d|[1-9]\d{0,7}-[0-9X]|3\d{7}[0-9X]/iD', $gnd))
+{
+    $error = array();
+    $error['error'] = "GND-ID: not valid";
+    echo json_encode($error);
+    exit;
 }
+else
+{
 
 $uri = 'https://d-nb.info/gnd/' . $gnd .'/about/rdf' ;
 $res = 'https://d-nb.info/gnd/' . $gnd;
@@ -61,11 +92,19 @@ EasyRdf_Namespace::set('skos', 'http://www.w3.org/2004/02/skos/core#');
 EasyRdf_Namespace::set('isbd', 'http://iflastandards.info/ns/isbd/elements/');
 EasyRdf_Namespace::set('gndsc', 'https://d-nb.info/standards/vocab/gnd/gnd-sc#');
 
+ 
+if (!urlExists($uri)){
+
+$error = array();
+     $error['error'] = "GND-ID: not exists";
+     echo json_encode($error);
+     exit;
+
+}else{
+
 $rdf = EasyRdf_Graph::newAndLoad($uri);
 
-/** DNB returns error page if GND not found, no return code;
- * so we cannot catch an error
- * */
+
 if (!$rdf) {
     $error = array();
     $error['error'] = "DNB: could not create rdf object";
@@ -150,7 +189,9 @@ if (isset($relatedDdc) && !empty($relatedDdc)) { $r['relatedDdc'] = $relatedDdc 
 
 //if (isset($gndSearchAllBooksUri)&& $gndSearchAllBooksUri !== ""){ $r['gndSearchAllBooksUri'] = $gndSearchAllBooksUri ;}
 //if (isset($fieldOfStudy)        && $fieldOfStudy !== ""){ $r['fieldOfStudy'] = $fieldOfStudy ;}  
-//if (isset($geo)                 && $geo !== ""){ $r['geo'] = $geo ;}
-   
+//if (isset($geo)                 && $geo !== ""){ $r['geo'] = $geo ;} 
+} // end gnd exists
+} // end gnd is valid
+
 header('Content-Type: application/json');
 echo json_encode($r);
